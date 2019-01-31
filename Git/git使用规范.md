@@ -1,10 +1,12 @@
 # git 使用文档整理
 
+[Git Book 简体中文](https://git-scm.com/book/zh/v2)
+
 ## 基础
 
 - [安装 git](https://git-scm.com/download/)
   直接使用默认配置进行安装就可以了。
-- git 中的仓库分为本地仓库和远程仓库。
+- git 中的仓库分为`本地仓库`和`远程仓库`。
 
 ### git 常用 GUI 工具：
 
@@ -16,23 +18,31 @@
 
 #### 初始化
 
+[初次运行 git 前的配置](https://git-scm.com/book/zh/v2/%E8%B5%B7%E6%AD%A5-%E5%88%9D%E6%AC%A1%E8%BF%90%E8%A1%8C-Git-%E5%89%8D%E7%9A%84%E9%85%8D%E7%BD%AE)
+
 1. 设置化用户名 `git config --global user.name "your name"`
 1. 设置邮箱地址 `git config --global user.email "your email"`
-1. 全局设置 git 保存密码 `git config --global credential.helper store`
-1. 克隆代码到本地，xxx 需替换为具体的仓库地址 `git clone xxx`
 
-#### 日常使用
+- 全局设置 git 保存密码 `git config --global credential.helper store`
+- 克隆项目 xxx `git clone xxx`
+
+[.gitignore 文件设置 git 忽略的文件](https://git-scm.com/docs/gitignore)
+
+## 日常使用
 
 1. `git status`，查看本地仓库状态。
-1. `git add --all`，保证工作区中的文件都记录到本地仓库，并处于暂存状态。
-1. `git commit -am "message"`，将工作区的文件改动都提交到本地仓库。message 为提交说明文案。
+1. `git add -A`，暂存所有变化(modified、deleted、new)。
+1. `git commit -am "message"`，将工作区的文件改动都提交到本地仓库。
 1. `git fetch`，将服务端代码更新到 remote 分支。本地分支不变。
 1. `git merge xxx` 将分支 xxx 合并到当前分支。
 1. `git push`，将本地仓库的改动提交到服务端仓库。
 1. `git pull [--rebase]`，将服务端仓库的状态同步到本地仓库。
-1. 代码操作很容易产生文件冲突(conflict)，建议不要在命令行操作，而是通过 GUI 操作。如:TortoiseGit 等。
 
-#### 更新代码
+### 合并分支
+
+merge 操作很容易产生冲突(conflict)。建议不要在命令行解决冲突，而是通过 GUI 操作。如:TortoiseGit 等。
+
+### 更新代码
 
 建议通过`git pull --rebase`更新代码，减少 merge 的提交记录。
 
@@ -50,34 +60,42 @@
    1. [angular 的 commit 规范](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#-commit-message-guidelines)
    1. git commit 的工具[commitizen](https://www.jianshu.com/p/856bbb5ed9ec)
 
-### [gitflow 工作流](https://www.cnblogs.com/myqianlan/p/4195994.html)
+## gitflow 工作流
 
-#### 使用 gitflow 工作流管理分支
+[使用 gitflow 工作流](https://www.cnblogs.com/myqianlan/p/4195994.html)
 
-> 分支名，xxx 代表表功能代号
+> gitflow 工作流分支管理规范
 
-1. master 主分支，长期保留。创建分支时，都从 master 分支开始创建。
-1. develop 开发分支，长期保留。
-1. feature/xxx 功能分支，功能开发完成后，合并回 develop 功能开发完成后，合并回 develop 即可删除 feature/xxx 分支。
-1. release/xxx 发布分支，合并需要的功能分支，修改为生产环境的配置。
-1. 版本发布完成后，合并回 develop 和 master，并在 master 分支上生成 tag 记录。发布完成后即可删除 release/xxx 分支。
+分支名中的 xxx 是版本代号。可用版本号或英文单词。
+
+1. master 主分支，长期保留。
+1. develop 开发分支，从 master 创建，长期保留。
+1. feature/xxx 功能分支。
+   1. 从 develop 创建。功能开发完成前不做合并操作。
+   1. 功能开发完成后，合并回 develop，自测并修改测试出的 bug。
+   1. 合并回 develop 后可删除 feature/xxx 分支。
+1. release/xxx 发布分支。
+   1. 从 develop 创建。修改为正式环境配置。
+   1. 版本发布完成后：
+      1. 合并到 develop 和 master 。
+      1. 在 master 上生成 tag 记录。
+      1. 可删除 release/xxx 。
+1. hotfix/xxx 线上 bug 修复分支。
+   1. 从 master 分支创建。
+   1. 修复完成后合并回 master，并删除 hotfix/xxx 分支。
+
+![gitflow工作流feature分支流程](./img/gitflow-release.png)
 
 > tag 管理规范
 
 1. v 加三位数的数字版本号，如：v1.0.0、v1.1.0
-1. 三个数字从左往右依次代表：大版本号，小版本号，bugfix 版本号
-
-#### 主要参考 feature 分支的流程
-
-![gitflow工作流feature分支](./img/gitflow-release.png)
-
-其他流程基本和 feature 类似
+1. 三个数字从左往右依次代表：大版本号，小版本号，bugfix 版本号或特殊小版本号
 
 ## 命令行使用 git
 
 ### 常用操作
 
-- `git init` 将本地文件夹初始化文 git 本地仓库，可以执行除了操作远程仓库外的所有 git 操作。也可以在添加远程仓库地址后操作远程仓库
+- `git init` 将本地文件夹初始化文 git 本地仓库，可以执行除了操作远程仓库外的所有 git 操作。也可以在之后添加远程仓库地址。
 - `git clone` 将远程仓库克隆到本地仓库
 - git pull 从远程仓库更新文件到本地仓库，并会自动生成一个 merge 的记录
 - git pull --rebase 从远程仓库更新文件到本地仓库，不会自动生成 merge 记录
