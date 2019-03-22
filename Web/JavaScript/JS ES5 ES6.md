@@ -1,5 +1,11 @@
 # ES5 和 ES6
 
+## 参考
+
+[Learn ES2015](https://babeljs.io/docs/en/learn)
+[ECMAScript 6 入门](http://es6.ruanyifeng.com/)
+[ES5 和 ES6 的区别](http://www.cnblogs.com/lovesong/p/4908871.html)
+
 ## ES5
 
 ### 1. strict 模式
@@ -292,11 +298,11 @@ Math.imul(Math.pow(2, 32) - 1, Math.pow(2, 32) - 2); // 2
 
 Array.from(document.querySelectorAll("*")); // Returns a real Array
 Array.of(1, 2, 3) // Similar to new Array(...), but without special one-arg behavior
-  [0, 0, 0].fill(7, 1) // [0,7,7]
-  [1, 2, 3].findIndex(x => x == 2) // 1
-  ["a", "b", "c"].entries() // iterator [0, "a"], [1,"b"], [2,"c"]
-  ["a", "b", "c"].keys() // iterator 0, 1, 2
-  ["a", "b", "c"].values(); // iterator "a", "b", "c"
+  [(0, 0, 0)].fill(7, 1) // [0,7,7]
+  [(1, 2, 3)].findIndex(x => x == 2) // 1
+  [("a", "b", "c")].entries() // iterator [0, "a"], [1,"b"], [2,"c"]
+  [("a", "b", "c")].keys() // iterator 0, 1, 2
+  [("a", "b", "c")].values(); // iterator "a", "b", "c"
 
 Object.assign(Point, { origin: new Point(0, 0) });
 ```
@@ -349,7 +355,7 @@ console.log("2π = " + sum(pi, pi));
 
 ### 14. Symbols - 符号
 
-Symbol是一种基本类型。Symbol 通过调用symbol函数产生，它接收一个可选的名字参数，该函数返回的symbol是唯一的。
+Symbol 是一种基本类型。Symbol 通过调用 symbol 函数产生，它接收一个可选的名字参数，该函数返回的 symbol 是唯一的。
 
 ```js
 (function() {
@@ -513,7 +519,7 @@ var handler =
 
 ### 19. Reflect - 反射
 
-Reflect对象与Proxy对象一样，也是 ES6 为了操作对象而提供的新 API。
+Reflect 对象与 Proxy 对象一样，也是 ES6 为了操作对象而提供的新 API。
 
 ```js
 var O = { a: 1 };
@@ -529,15 +535,9 @@ var instance = Reflect.construct(C, [20, 22]);
 instance.c; // 42
 ```
 
-Reflect对象的设计目的有这样几个：
+Reflect 对象的设计目的有这样几个：
 
-1. 将Object对象的一些明显属于语言内部的方法（比如Object.defineProperty），放到Reflect对象上。 从Reflect对象上可以拿到语言内部的方法。
-1. 修改某些Object方法的返回结果，让其变得更合理。 比如，Object.defineProperty(obj, name, desc)在无法定义属性时，会抛出一个错误，而Reflect.defineProperty(obj, name, desc)则会返回false。
-1. 让Object操作都变成函数行为。
-1. Reflect对象的方法与Proxy对象的方法一一对应，只要是Proxy对象的方法，就能在Reflect对象上找到对应的方法。
-
-## 参考
-
-[Learn ES2015](https://babeljs.io/docs/en/learn)
-[ECMAScript 6 入门](http://es6.ruanyifeng.com/)
-[ES5 和 ES6 的区别](http://www.cnblogs.com/lovesong/p/4908871.html)
+1. 将 Object 对象的一些明显属于语言内部的方法（比如 Object.defineProperty），放到 Reflect 对象上。 从 Reflect 对象上可以拿到语言内部的方法。
+1. 修改某些 Object 方法的返回结果，让其变得更合理。 比如，Object.defineProperty(obj, name, desc)在无法定义属性时，会抛出一个错误，而 Reflect.defineProperty(obj, name, desc)则会返回 false。
+1. 让 Object 操作都变成函数行为。
+1. Reflect 对象的方法与 Proxy 对象的方法一一对应，只要是 Proxy 对象的方法，就能在 Reflect 对象上找到对应的方法。

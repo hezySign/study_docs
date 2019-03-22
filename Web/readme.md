@@ -8,4 +8,6 @@
    1. ECMAScript
    1. ES5
    1. ES6
+1. TypeScript
+1. Nodejs
 1. Vue.js

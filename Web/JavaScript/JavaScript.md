@@ -1,6 +1,23 @@
 # JavaScript
 
+内容摘要
+
+- 简介
+- 预览
+- 关键字和保留字
+- 变量和值
+- 数据类型
+- 类型转换
+- 运算符
+- 控制语句
+- 函数
+- 对象
+
+## 参考
+
 [JS 基础教程](http://www.w3school.com.cn/js/index.asp)
+[JavaScript 对象](http://www.w3school.com.cn/js/js_reference.asp)
+[HTML DOM 对象](http://www.w3school.com.cn/jsref/index.asp)
 
 ## 简介
 
@@ -10,9 +27,9 @@ JavaScript 由三部分组成：
 
 1. ECMAScript （语法核心）
    作为语法核心，它规定了语言的组成部分：语法、类型、语句、关键字、保留字、操作符、对象
-1. DOM （文档对象模型）
+1. DOM （Document Object Model 文档对象模型）
    DOM 把整个页面映射为一个多层节点结果，开发人员可借助 DOM 提供的 API，轻松地删除、添加、替换或修改任何节点。
-1. BOM （浏览器对象模型）
+1. BOM （Browser Object Model 浏览器对象模型）
    支持可以访问和操作浏览器窗口的浏览器对象模型，开发人员可以控制浏览器显示的页面以外的部分。
 
 ### 1. JavaScript 使用
@@ -741,7 +758,7 @@ var iNum = 10;
 iNum += 10;
 ```
 
-### 7 控制语句
+### 7. 控制语句
 
 #### if 语句
 
@@ -1199,13 +1216,20 @@ JavaScript 本地对象和内置对象
 - RegExp
 - Global
 
-## HTML DOM （文档对象模型）
+## DOM （Document Object Model 文档对象模型）
 
 通过 HTML DOM，可访问 JavaScript HTML 文档的所有元素。
 
 当网页被加载时，浏览器会创建页面的文档对象模型（Document Object Model）。
 
-## BOM （浏览器对象模型）
+- Canvas
+- Document
+- Form
+- Object
+- Meta
+- Style
+
+## BOM （Browser Object Model 浏览器对象模型）
 
 浏览器对象模型 (BOM) 使 JavaScript 有能力与浏览器“对话”。
 
@@ -1218,8 +1242,3 @@ JavaScript 本地对象和内置对象
 - Screen
 - History
 - Location
-
-## 参考
-
-- [JavaScript 对象](http://www.w3school.com.cn/js/js_reference.asp)
-- [HTML DOM 对象](http://www.w3school.com.cn/jsref/index.asp)
