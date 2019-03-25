@@ -1,8 +1,11 @@
 
-// 可绘制的对象
+// 可绘制的对象，需要至少两个点的坐标
 class Drawable {
 
     constructor(x, y, x1, y1) {
+        if (typeof x != 'number' || typeof y != 'number' || typeof x1 != 'number' || typeof y1 != 'number') {
+            console.warn(`[${x},${y},${x1},${y1}] has error number`);
+        }
         this.x = x;
         this.y = y;
         this.x1 = x1;
@@ -102,16 +105,17 @@ class Rect extends Drawable {
 }
 
 /**
- * 绘制不规则多边形或线段，至少需要3个点
+ * 绘制不规则多边形或线段，至少需要2个点
  */
-class IrregularPolygon extends Drawable {
-    constructor() {
-        super();
-        this.points = [];
+class AnyDrawable extends Drawable {
+    constructor(x, y, x1, y1) {
+        super(x, y, x1, y1);
+        this.add(x, y);
+        this.add(x1, y1);
     }
 
     draw(canvas) {
-        if (this.points && this.points.length > 2) {
+        if (this.points && this.points.length > 1) {
             canvas.save();
             canvas.beginPath();
             this.points.forEach((e, index) => {
@@ -124,7 +128,7 @@ class IrregularPolygon extends Drawable {
             super.draw(canvas);
             canvas.restore();
         } else {
-            throw Error('多边形至少需要提供平面上3个点的坐标')
+            throw Error('多边形至少需要提供平面上2个点的坐标')
         }
     }
 
@@ -132,14 +136,13 @@ class IrregularPolygon extends Drawable {
         if (!this.points) {
             this.points = [];
         }
-        if (this.points.length > 0) {
-            this.x = this.points[0].x;
-            this.y = this.points[0].y;
-            let p = this.points[this.points.length-1];
-            this.x1 = p.x;
-            this.y1 = p.y;
+        if (!(point instanceof Point)) {
+            console.warn(point, ' is not instanceof Point');
+        } else if (typeof point.x != 'number' || typeof point.y != 'number') {
+            console.warn(point, ' has error number.');
+        } else {
+            this.points.push(point);
         }
-        this.points.push(point);
         return this;
     }
 
@@ -147,17 +150,21 @@ class IrregularPolygon extends Drawable {
         this.addPoint(new Point(x, y));
         return this;
     }
+
+    setEndPoint(x1, y1) {
+        super.setEndPoint(x1, y1);
+        return this.add(x1, y1);
+    }
 }
 
 // 绘制箭头
-class Arrow extends IrregularPolygon {
-    constructor(x, y) {
-        super();
-        this.x = x;
-        this.y = y;
+class Arrow extends AnyDrawable {
+    constructor(x, y, x1, y1) {
+        super(x, y, x1, y1);
         this.aLength = 10;
         this.aSize1 = 3;
         this.aSize2 = 8;
+        this.reset();
     }
 
     // 设置箭头样式
@@ -168,9 +175,10 @@ class Arrow extends IrregularPolygon {
         return this;
     }
 
-    setEndPoint(x1, y1) {
-        super.setEndPoint(x1, y1);
-        let x = this.x, y = this.y;
+    // 重置箭头绘制的样式
+    reset() {
+        this.points = [];
+        let x = this.x, y = this.y, x1 = this.x1, y1 = this.y1;
         let L = this.aLength, S1 = this.aSize1, S2 = this.aSize2;
         let PI = Math.PI;
         let degree = x != x1 ? Math.atan((y1 -y) / (x1 -x)) : 
@@ -186,7 +194,6 @@ class Arrow extends IrregularPolygon {
         this.add(x1 - L * Math.cos(degree) - S1 * Math.cos(PI/2 + degree),
             y1 - L * Math.sin(degree) - S1 * Math.sin(PI/2 - degree));
         this.add(x, y);
-        console.log(this);
         return this;
     }
 }

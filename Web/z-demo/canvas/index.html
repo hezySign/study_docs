@@ -15,23 +15,26 @@
         var c = document.getElementById("myCanvas");
         var ctx = c.getContext("2d");
 
-        new Circle(100, 50).setEndPoint(200, 200)
+        var drawables = [];
+
+        new Circle(100, 50, 200, 200)
             .setColor('#ff000f')
             .setFill(true)
             .draw(ctx);
-        new Circle(200, 50).setEndPoint(160, 200)
+        new Circle(200, 50, 160, 200)
             .setColor('#0000ff')
             .draw(ctx);
-        new Rect(100, 50).setEndPoint(160, 200)
+        new Rect(100, 50, 160, 200)
         .draw(ctx);
 
         var arrowStep1 = 3;
         var arrowStep2 = 10;
-        new IrregularPolygon()
-            .add(400, 60)
-            .add(400 - arrowStep1, 200).add(400 - arrowStep2, 200)
+        new AnyDrawable(400, 60)
+            .add(400 - arrowStep1, 200)
+            .add(400 - arrowStep2, 200)
             .add(400, 230)
-            .add(400 + arrowStep2, 200).add(400 + arrowStep1, 200)
+            .add(400 + arrowStep2, 200)
+            .add(400 + arrowStep1, 200)
             .add(400, 60)
             .setFill(false)
             .draw(ctx);
@@ -39,9 +42,9 @@
 
         new Line(200, 20, 300, 30).draw(ctx);
 
-        new Rect(100, 300).setEndPoint(200, 400).setColor('red').draw(ctx);
-        new Arrow(100, 300).setEndPoint(250, 450).draw(ctx);
-        new Arrow(300, 300).setEndPoint(300, 400).draw(ctx);
+        new Rect(100, 300, 200, 400).setColor('red').draw(ctx);
+        new Arrow(100, 300, 250, 450).draw(ctx);
+        new Arrow(300, 300, 300, 400).draw(ctx);
     </script>
 </body>
 
