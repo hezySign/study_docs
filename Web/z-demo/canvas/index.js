@@ -3,9 +3,6 @@
 class Drawable {
 
     constructor(x, y, x1, y1) {
-        if (typeof x != 'number' || typeof y != 'number' || typeof x1 != 'number' || typeof y1 != 'number') {
-            console.warn(`[${x},${y},${x1},${y1}] has error number`);
-        }
         this.x = x;
         this.y = y;
         this.x1 = x1;
@@ -25,6 +22,7 @@ class Drawable {
         } else {
             canvas.stroke();
         }
+        console.log(this);
     }
 
     setColor(color) {
@@ -132,39 +130,36 @@ class AnyDrawable extends Drawable {
         }
     }
 
-    addPoint(point) {
+    add(x, y) {
+        return this.setEndPoint(x, y);
+    }
+
+    setEndPoint(x1, y1) {
+        let point = new Point(x1, y1);
         if (!this.points) {
             this.points = [];
         }
         if (!(point instanceof Point)) {
-            console.warn(point, ' is not instanceof Point');
+            //console.warn(point, ' is not instanceof Point');
         } else if (typeof point.x != 'number' || typeof point.y != 'number') {
-            console.warn(point, ' has error number.');
+            //console.warn(point, 'point has error number.');
         } else {
+            this.x1 = x1;
+            this.y1 = y1;
             this.points.push(point);
         }
         return this;
-    }
-
-    add(x, y) {
-        this.addPoint(new Point(x, y));
-        return this;
-    }
-
-    setEndPoint(x1, y1) {
-        super.setEndPoint(x1, y1);
-        return this.add(x1, y1);
     }
 }
 
 // 绘制箭头
 class Arrow extends AnyDrawable {
     constructor(x, y, x1, y1) {
-        super(x, y, x1, y1);
+        super(x, y);
         this.aLength = 10;
         this.aSize1 = 3;
         this.aSize2 = 8;
-        this.reset();
+        this.setEndPoint(x1, y1);
     }
 
     // 设置箭头样式
@@ -176,24 +171,91 @@ class Arrow extends AnyDrawable {
     }
 
     // 重置箭头绘制的样式
-    reset() {
-        this.points = [];
-        let x = this.x, y = this.y, x1 = this.x1, y1 = this.y1;
+    setEndPoint(x1, y1) {
+        this.x1 = x1;
+        this.y1 = y1;
+        let x = this.x, y = this.y;
         let L = this.aLength, S1 = this.aSize1, S2 = this.aSize2;
         let PI = Math.PI;
         let degree = x != x1 ? Math.atan((y1 -y) / (x1 -x)) : 
             y > y1 ? 3 * PI/2 : PI/2;
-        this.add(x, y);
-        this.add(x1 - L * Math.cos(degree) + S1 * Math.cos(PI/2 + degree),
-            y1 - L * Math.sin(degree) + S1 * Math.sin(PI/2 - degree));
-        this.add(x1 - L * Math.cos(degree) + S2 * Math.cos(PI/2 + degree),
-            y1 - L * Math.sin(degree) + S2 * Math.sin(PI/2 - degree));
-        this.add(x1, y1);
-        this.add(x1 - L * Math.cos(degree) - S2 * Math.cos(PI/2 + degree),
-            y1 - L * Math.sin(degree) - S2 * Math.sin(PI/2 - degree));
-        this.add(x1 - L * Math.cos(degree) - S1 * Math.cos(PI/2 + degree),
-            y1 - L * Math.sin(degree) - S1 * Math.sin(PI/2 - degree));
-        this.add(x, y);
+
+        this.points = [
+            new Point(x, y),
+            new Point(x1 - L * Math.cos(degree) + S1 * Math.cos(PI/2 + degree),
+                y1 - L * Math.sin(degree) + S1 * Math.sin(PI/2 - degree)),
+            new Point(x1 - L * Math.cos(degree) + S2 * Math.cos(PI/2 + degree),
+                y1 - L * Math.sin(degree) + S2 * Math.sin(PI/2 - degree)),
+            new Point(x1, y1),
+            new Point(x1 - L * Math.cos(degree) - S2 * Math.cos(PI/2 + degree),
+                y1 - L * Math.sin(degree) - S2 * Math.sin(PI/2 - degree)),
+            new Point(x1 - L * Math.cos(degree) - S1 * Math.cos(PI/2 + degree),
+                y1 - L * Math.sin(degree) - S1 * Math.sin(PI/2 - degree)),
+            new Point(x, y),
+        ];
         return this;
     }
 }
+
+/*
+const config = {
+    canvasId: 'myCanvas', // canvasId
+    canvas: null,
+    color: '#999999', // 画笔颜色
+    lineWidth: 10, // 线条宽度
+    shape: 'line', // 绘制形状: line, rect, circle, any, arrow
+    isDrawing: false, // true-正在绘制，false-绘制完成
+    
+    // --- 绘制暂存对象
+    drawables: [],
+    drawablesCopy: [],
+    drawable: null,
+
+    // 鼠标移动绘制方法
+    onmousedown(e) {
+        config.isDrawing = true;
+        console.log(e);
+        let x = e.clientX, y = e.clientY;
+        switch(config.shape) {
+            case 'line': config.drawable = new Line(x, y);
+                break;
+            case 'rect': config.drawable = new Rect(x, y);
+                break;
+            case 'circle': config.drawable = new Circle(x, y);
+                break;
+            case 'any': config.drawable = new AnyDrawable(x, y);
+                break;
+            case 'arrow': config.drawable = new Arrow(x, y);
+                break;
+        }
+    },
+
+    onmousemove(e) {
+        if (config.isDrawing) {
+            console.log(e);
+            let x = e.clientX, y = e.clientY;
+            if (config.drawable && config.drawable instanceof Drawable) {
+                config.drawable.setEndPoint(x, y).draw(config.canvas);
+            }
+        }
+    },
+
+    onmouseup(e) {
+        config.isDrawing = false;
+        console.log(e);
+        if (config.drawable && config.drawable instanceof Drawable) {
+            config.drawables.push(config.drawable);
+        }
+    },
+}
+
+function init(o) {
+    var c = document.getElementById(o.canvasId);
+    o.canvas = c.getContext("2d");
+    c.onmousedown = o.onmousedown;
+    c.onmousemove = o.onmousemove;
+    c.onmouseup = o.onmouseup;
+}
+
+init(config);
+*/
