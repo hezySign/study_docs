@@ -1,3 +1,59 @@
+// 白板
+class WhiteBoard {
+    constructor({
+        canvasId= null, // canvasId
+        color= '#999999', // 画笔颜色
+        lineWidth= 1, // 线条宽度
+        shape= 'line', // 绘制形状: line, rect, circle, any, arrow
+        onDrawStart = null,
+        onDrawing = null,
+        onDrawEnd = null,
+    }) {
+        this.drawables = [];
+
+        let ele = document.getElementById(canvasId);
+        this.canvas = ele.getContext("2d");
+
+        let drawable;
+
+        ele.onmousedown = e => {
+            this.isDrawing = true;
+            let x = e.clientX, y = e.clientY;
+            console.log(e);
+            switch(shape) {
+                case 'line': drawable = new Line(x, y).setColor(color).setLineWidth(lineWidth);
+                    break;
+                case 'rect': drawable = new Rect(x, y).setColor(color).setLineWidth(lineWidth);
+                    break;
+                case 'circle': drawable = new Circle(x, y).setColor(color).setLineWidth(lineWidth);
+                    break;
+                case 'any': drawable = new AnyDrawable(x, y).setColor(color).setLineWidth(lineWidth);
+                    break;
+                case 'arrow': drawable = new Arrow(x, y).setColor(color).setLineWidth(lineWidth);
+                    break;
+            }
+        };
+        ele.onmousemove = e => {
+            if (this.isDrawing) {
+                let x = e.clientX, y = e.clientY;
+                console.log(x, y, drawable);
+                if (drawable && drawable instanceof Drawable) {
+                    console.log(true)
+                    drawable.setEndPoint(x, y).draw(this.canvas);
+                } else {
+                    console.log(false)
+                }
+            }
+        };
+        ele.onmouseup = e => {
+            this.isDrawing = false;
+            if (this.drawables && drawable && drawable instanceof Drawable) {
+                this.drawables.push(drawable);
+            }
+            console.log(e, this.drawables);
+        };
+    }
+}
 
 // 可绘制的对象，需要至少两个点的坐标
 class Drawable {
@@ -196,66 +252,3 @@ class Arrow extends AnyDrawable {
         return this;
     }
 }
-
-/*
-const config = {
-    canvasId: 'myCanvas', // canvasId
-    canvas: null,
-    color: '#999999', // 画笔颜色
-    lineWidth: 10, // 线条宽度
-    shape: 'line', // 绘制形状: line, rect, circle, any, arrow
-    isDrawing: false, // true-正在绘制，false-绘制完成
-    
-    // --- 绘制暂存对象
-    drawables: [],
-    drawablesCopy: [],
-    drawable: null,
-
-    // 鼠标移动绘制方法
-    onmousedown(e) {
-        config.isDrawing = true;
-        console.log(e);
-        let x = e.clientX, y = e.clientY;
-        switch(config.shape) {
-            case 'line': config.drawable = new Line(x, y);
-                break;
-            case 'rect': config.drawable = new Rect(x, y);
-                break;
-            case 'circle': config.drawable = new Circle(x, y);
-                break;
-            case 'any': config.drawable = new AnyDrawable(x, y);
-                break;
-            case 'arrow': config.drawable = new Arrow(x, y);
-                break;
-        }
-    },
-
-    onmousemove(e) {
-        if (config.isDrawing) {
-            console.log(e);
-            let x = e.clientX, y = e.clientY;
-            if (config.drawable && config.drawable instanceof Drawable) {
-                config.drawable.setEndPoint(x, y).draw(config.canvas);
-            }
-        }
-    },
-
-    onmouseup(e) {
-        config.isDrawing = false;
-        console.log(e);
-        if (config.drawable && config.drawable instanceof Drawable) {
-            config.drawables.push(config.drawable);
-        }
-    },
-}
-
-function init(o) {
-    var c = document.getElementById(o.canvasId);
-    o.canvas = c.getContext("2d");
-    c.onmousedown = o.onmousedown;
-    c.onmousemove = o.onmousemove;
-    c.onmouseup = o.onmouseup;
-}
-
-init(config);
-*/
