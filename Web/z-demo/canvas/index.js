@@ -6,15 +6,20 @@ class WhiteBoard {
         lineWidth= 1, // 线条宽度
         shape= 'line', // 绘制形状: line, rect, circle, any, arrow
         onDrawStart = null,
-        onDrawing = null,
+        onDraw = null,
         onDrawEnd = null,
     }) {
         this.drawables = [];
 
         let ele = document.getElementById(canvasId);
-        this.canvas = ele.getContext("2d");
+        let canvas = ele.getContext("2d");
 
-        let drawable;
+        canvas.lineJoin = 'round';
+        canvas.lineCap = 'round';
+        canvas.strokeStyle = color;
+        canvas.lineWidth = lineWidth;
+
+        let drawable = null;
 
         ele.onmousedown = e => {
             this.isDrawing = true;
@@ -32,26 +37,45 @@ class WhiteBoard {
                 case 'arrow': drawable = new Arrow(x, y).setColor(color).setLineWidth(lineWidth);
                     break;
             }
+            if (drawable && drawable instanceof Drawable) {
+                drawable.onDrawStart(canvas);
+                console.log(true);
+            } else {
+                console.log(false);
+            }
+            if (onDrawStart instanceof Function) {
+                onDrawStart(canvas);
+            }
         };
         ele.onmousemove = e => {
             if (this.isDrawing) {
                 let x = e.clientX, y = e.clientY;
-                console.log(x, y, drawable);
+                // console.log(x, y, drawable);
                 if (drawable && drawable instanceof Drawable) {
-                    console.log(true)
-                    drawable.setEndPoint(x, y).draw(this.canvas);
-                } else {
-                    console.log(false)
+                    drawable.setEndPoint(x, y).draw(canvas);
+                }
+
+                if (onDraw instanceof Function) {
+                    onDraw(canvas);
                 }
             }
         };
         ele.onmouseup = e => {
             this.isDrawing = false;
             if (this.drawables && drawable && drawable instanceof Drawable) {
+                drawable.onDrawEnd(canvas);
                 this.drawables.push(drawable);
+                
+                if (onDrawEnd instanceof Function) {
+                    onDrawEnd(canvas);
+                }
             }
             console.log(e, this.drawables);
         };
+        ele.onmouseout = () => {
+            this.isDrawing = false;
+        }
+
     }
 }
 
@@ -66,7 +90,13 @@ class Drawable {
         this.color = 'gray'; // 填充和划线绘制时的颜色
         this.lineWidth = '1';
         this.fill = false; // 是否是填充绘制方式：true-是，false-不是
-        this.rotateDegree = 0; //旋转角度 [0, 360]
+    }
+
+    onDrawStart(canvas) {
+        console.log(this);
+        canvas.fillStyle = this.color
+        canvas.strokeStyle = this.color;
+        canvas.lineWidth = this.lineWidth;
     }
 
     draw(canvas) {
@@ -78,6 +108,9 @@ class Drawable {
         } else {
             canvas.stroke();
         }
+    }
+
+    onDrawEnd(canvas) {
         console.log(this);
     }
 
@@ -93,11 +126,6 @@ class Drawable {
 
     setFill(fill) {
         this.fill = fill;
-        return this;
-    }
-
-    setRotateDegree(degree) {
-        this.rotateDegree = degree;
         return this;
     }
 
@@ -120,13 +148,9 @@ class Point {
 class Line extends Drawable {
     
     draw(canvas) {
-        canvas.save();
-        canvas.beginPath();
         canvas.moveTo(this.x, this.y);
         canvas.lineTo(this.x1, this.y1);
-        canvas.closePath();
         super.draw(canvas);
-        canvas.restore();
     }
 }
 
@@ -137,12 +161,8 @@ class Circle extends Drawable {
         let centerX = (this.x + this.x1) / 2;
         let centerY = (this.y + this.y1) / 2;
         let radius = Math.sqrt(Math.pow(this.x1 - this.x, 2) + Math.pow(this.y1 -this.y, 2)) / 2;
-        canvas.save();
-        canvas.beginPath();
         canvas.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
-        canvas.closePath();
         super.draw(canvas);
-        canvas.restore();
     }
 }
 
@@ -150,11 +170,8 @@ class Circle extends Drawable {
 class Rect extends Drawable {
 
     draw(canvas) {
-        canvas.save();
-        canvas.beginPath();
         canvas.rect(this.x, this.y, this.x1 - this.x, this.y1 - this.y);
         super.draw(canvas);
-        canvas.restore();
     }
 }
 
@@ -170,8 +187,6 @@ class AnyDrawable extends Drawable {
 
     draw(canvas) {
         if (this.points && this.points.length > 1) {
-            canvas.save();
-            canvas.beginPath();
             this.points.forEach((e, index) => {
                 if (index == 0) {
                     canvas.moveTo(e.x, e.y);
@@ -180,7 +195,6 @@ class AnyDrawable extends Drawable {
                 }
             });
             super.draw(canvas);
-            canvas.restore();
         } else {
             throw Error('多边形至少需要提供平面上2个点的坐标')
         }
