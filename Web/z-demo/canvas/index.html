@@ -10,17 +10,23 @@
 <body>
     <canvas id="myCanvas"
         width="800"
-        height="800"
-        style="border:1px solid #d3d3d3;"
+        height="600"
+        style="border:1px solid #d3d3d3; margin: 50px 100px;"
         >
         Your browser does not support the HTML5 canvas tag.
     </canvas>
+
+    <div id="myController">
+        <button id="btnUndo">Undo</button>
+        <button id="btnRedo">Redo</button>
+    </div>
+
     <script>
         var c = document.getElementById("myCanvas");
         var ctx = c.getContext("2d");
 
         var drawables = [];
-
+/*
         new Circle(100, 50, 200, 200)
             .setColor('#ff000f')
             .setFill(true)
@@ -49,10 +55,22 @@
         new Rect(100, 300, 200, 400).setColor('red').draw(ctx);
         new Arrow(100, 300, 250, 450).draw(ctx);
         //new Arrow(300, 300, 300, 400).draw(ctx);
+*/
+var board = new WhiteBoard({
+            canvasId: "myCanvas",
+            shape: 'line'
+        });
 
-        console.log(new WhiteBoard({
-            canvasId: "myCanvas"
-        }))
+var btnUndo = document.getElementById("btnUndo");
+btnUndo.onclick = function(){
+    board.undo();
+}
+
+var btnRedo = document.getElementById("btnRedo");
+btnRedo.onclick = function() {
+    board.redo();
+}
+        console.log(board);
     </script>
 </body>
 
