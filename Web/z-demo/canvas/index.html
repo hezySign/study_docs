@@ -17,60 +17,40 @@
     </canvas>
 
     <div id="myController">
-        <button id="btnUndo">Undo</button>
-        <button id="btnRedo">Redo</button>
+        <button onclick="board.clearAll()">清空全部</button>
+        <button onclick="board.undo()">Undo</button>
+        <button onclick="board.redo()">Redo</button>
+        
+        <label>画笔粗细</label>
+        <select onchange="board.setConfig({ lineWidth: this.value})">
+            <option value="1">1</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+        </select>
+
+        <label>颜色</label>
+        <select onchange="board.setConfig({ color: this.value})">
+            <option value="gray">gray</option>
+            <option value="red">red</option>
+            <option value="green">green</option>
+            <option value="blue">blue</option>
+        </select>
+        
+        <label>形状</label>
+        <select onchange="board.setConfig({ shape: this.value})">
+            <option value="line">直线</option>
+            <option value="any">画笔</option>
+            <option value="rect">矩形</option>
+            <option value="circle">圆形</option>
+            <option value="arrow">箭头</option>
+        </select>
     </div>
 
     <script>
-        var c = document.getElementById("myCanvas");
-        var ctx = c.getContext("2d");
-
-        var drawables = [];
-/*
-        new Circle(100, 50, 200, 200)
-            .setColor('#ff000f')
-            .setFill(true)
-            .draw(ctx);
-        new Circle(200, 50, 160, 200)
-            .setColor('#0000ff')
-            .draw(ctx);
-        new Rect(100, 50, 160, 200)
-        .draw(ctx);
-
-        var arrowStep1 = 3;
-        var arrowStep2 = 10;
-        new AnyDrawable(400, 60)
-            .add(400 - arrowStep1, 200)
-            .add(400 - arrowStep2, 200)
-            .add(400, 230)
-            .add(400 + arrowStep2, 200)
-            .add(400 + arrowStep1, 200)
-            .add(400, 60)
-            .setFill(false)
-            .draw(ctx);
-
-
-        new Line(200, 20, 300, 30).draw(ctx);
-
-        new Rect(100, 300, 200, 400).setColor('red').draw(ctx);
-        new Arrow(100, 300, 250, 450).draw(ctx);
-        //new Arrow(300, 300, 300, 400).draw(ctx);
-*/
-var board = new WhiteBoard({
-            canvasId: "myCanvas",
-            shape: 'line'
+        var board = new WhiteBoard("myCanvas", {
+            shape: 'line',
         });
 
-var btnUndo = document.getElementById("btnUndo");
-btnUndo.onclick = function(){
-    board.undo();
-}
-
-var btnRedo = document.getElementById("btnRedo");
-btnRedo.onclick = function() {
-    board.redo();
-}
-        console.log(board);
     </script>
 </body>
 
