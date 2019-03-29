@@ -5,7 +5,7 @@ class WhiteBoard {
             color = '#999999', // 画笔颜色
             lineWidth = 1, // 线条宽度
             shape = 'line', // 绘制形状: line, rect, circle, paint, arrow
-            fill = false, // true-填充，false-线条
+            fill = false, // Truthy-填充， Falsy-线条
             onDrawEnd = null,
         } = { ...obj };
 
@@ -118,11 +118,15 @@ class WhiteBoard {
             this.lineWidth = lineWidth;
             this.ctx.lineWidth = lineWidth;
         }
-        if (shape) {
+        if (shape != undefined) {
             this.shape = shape;
         }
-        this.fill = fill;
-        this.onDrawEnd = onDrawEnd;
+        if (fill != undefined) {
+            this.fill = fill;
+        }
+        if (onDrawEnd != undefined) {
+            this.onDrawEnd = onDrawEnd;
+        }
         console.log('setConfig', this)
     }
 
@@ -214,7 +218,7 @@ class Drawable {
             canvas.beginPath();
             this._drawInternal(isDown, this.lastX, this.lastY, x, y);
             canvas.closePath();
-            if (this.fill == 1) {
+            if (this.fill) {
                 canvas.fill();
             } else {
                 canvas.stroke();
@@ -269,6 +273,7 @@ class Drawable {
 class PaintDrawable extends Drawable {
 
     _drawInternal(isDown, x, y, x1, y1) {
+        this.setFill(false);
         if (!isDown) {
             return;
         }
@@ -288,6 +293,7 @@ class Line extends Drawable {
     }
 
     _drawInternal(isDown, x, y, x1, y1) {
+        this.setFill(false);
         if (!isDown) {
             return;
         }
@@ -462,6 +468,7 @@ class RainbowDrawable extends PaintDrawable {
         }
         this.setColor(this.rgb(r, g, b));
         this.setLineWidth(this.lineWidth);
+        this.setFill(false);
 
         // 绘制形状
         if (isDown) {
