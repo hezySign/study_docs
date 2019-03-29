@@ -212,7 +212,7 @@ class Drawable {
         canvas.save();
         if (isDown) {
             canvas.beginPath();
-            this._drawInternal(this.canvas, this.lastX, this.lastY, x, y);
+            this._drawInternal(isDown, this.lastX, this.lastY, x, y);
             canvas.closePath();
             if (this.fill == 1) {
                 canvas.fill();
@@ -220,7 +220,7 @@ class Drawable {
                 canvas.stroke();
             }
         } else {
-            this._drawInternal(this.canvas, this.lastX, this.lastY, x, y);
+            this._drawInternal(isDown, this.lastX, this.lastY, x, y);
         }
         canvas.restore();
 
@@ -252,7 +252,7 @@ class Drawable {
     }
 
     setLineWidth(lineWidth) {
-        this.lineWidth = lineWidth;
+        this.lineWidth = Number(lineWidth);
         if (this.lineWidth != undefined) {
             this.canvas.lineWidth = this.lineWidth;
         }
@@ -394,7 +394,6 @@ class Arrow extends AnyDrawable {
 
     // 重置箭头绘制的样式
     setEndPoint(x1, y1) {
-        console.log('Arrow', this.lastX, this.lastY, this.startX, this.startY)
         // 箭头参数：起点 P(x,y)，终点 P1(x1, y1)，方向 P→P1
         let x = this.lastX, y = this.lastY;
         let L = this.aLength; // 箭头方向上的长度
