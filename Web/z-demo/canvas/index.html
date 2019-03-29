@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <canvas id="myCanvas" width="600" height="300"
+    <canvas id="myCanvas" width="800" height="500"
         style="border:1px solid #d3d3d3; margin: 50px 100px;"
         >Your browser does not support the HTML5 canvas tag.
     </canvas>
@@ -47,15 +47,16 @@
             <option value="rect">矩形</option>
             <option value="circle">圆形</option>
             <option value="arrow">箭头</option>
+            <option value="rainbow">彩虹画笔</option>
         </select>
     </div>
 
     <script>
         // var board = new WhiteBoard("myCanvas");
         var board = new WhiteBoard("myCanvas", {
-            color: 'red',
-            lineWidth: 2,
-            shape: 'paint',
+            color: 'gray',
+            lineWidth: 6,
+            shape: 'rainbow',
             onDrawEnd() {
                 console.log('onDrawEnd', this.step, this.canvasHistory.length);
             }

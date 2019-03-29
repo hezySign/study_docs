@@ -34,13 +34,16 @@ class WhiteBoard {
         ele.onmouseup = () => {
             this._onDrawEnd();
         };
+        ele.onmouseleave = () => {
+            this._onDrawEnd();
+        }
     }
 
     // 画笔开始绘制
     _onDrawStart(e) {
         this.isDrawing = true;
         let drawable = null;
-        let { ele, ctx, shape, fill } = this;
+        let { ele, ctx, shape, fill, color, lineWidth } = this;
         let x = e.pageX - ele.offsetLeft, y = e.pageY - ele.offsetTop;
         switch (shape) {
             case 'line': drawable = new Line(ctx);
@@ -53,11 +56,13 @@ class WhiteBoard {
                 break;
             case 'arrow': drawable = new Arrow(ctx);
                 break;
+            case 'rainbow': drawable = new RainbowDrawable(ctx);
+                break;
             default: console.error('不支持的shape', shape)
                 break;
         }
         if (drawable && drawable instanceof Drawable) {
-            drawable.setFill(fill);
+            drawable.setFill(fill).setColor(color).setLineWidth(lineWidth);
             drawable.draw(x, y, false);
             this.drawable = drawable;
         }
@@ -202,6 +207,9 @@ class Drawable {
      */
     draw(x, y, isDown = false, keepOrigin = false) {
         let canvas = this.canvas;
+
+        // 绘制形状，具体绘制过程封装到 this._drawInternal 方法中
+        canvas.save();
         if (isDown) {
             canvas.beginPath();
             this._drawInternal(this.canvas, this.lastX, this.lastY, x, y);
@@ -211,7 +219,12 @@ class Drawable {
             } else {
                 canvas.stroke();
             }
+        } else {
+            this._drawInternal(this.canvas, this.lastX, this.lastY, x, y);
         }
+        canvas.restore();
+
+        // 记录起始点 P 的坐标
         if (keepOrigin) {
             if (this.lastX == undefined) {
                 this.lastX = x;
@@ -226,7 +239,7 @@ class Drawable {
     }
 
     // 内部绘制方法，在子类中绘制具体的形状。
-    _drawInternal(canvas, x, y, x1, y1) {
+    _drawInternal(isDown, x, y, x1, y1) {
     }
 
     setColor(color) {
@@ -255,7 +268,11 @@ class Drawable {
 // 画笔
 class PaintDrawable extends Drawable {
 
-    _drawInternal(canvas, x, y, x1, y1) {
+    _drawInternal(isDown, x, y, x1, y1) {
+        if (!isDown) {
+            return;
+        }
+        let canvas = this.canvas;
         canvas.moveTo(x, y);
         canvas.lineTo(x1, y1);
     }
@@ -270,7 +287,11 @@ class Line extends Drawable {
         super.draw(x, y, isDown, keepOrigin);
     }
 
-    _drawInternal(canvas, x, y, x1, y1) {
+    _drawInternal(isDown, x, y, x1, y1) {
+        if (!isDown) {
+            return;
+        }
+        let canvas = this.canvas;
         canvas.moveTo(x, y);
         canvas.lineTo(x1, y1);
     }
@@ -279,7 +300,11 @@ class Line extends Drawable {
 // 绘制矩形
 class Rect extends Line {
 
-    _drawInternal(canvas, x, y, x1, y1) {
+    _drawInternal(isDown, x, y, x1, y1) {
+        if (!isDown) {
+            return;
+        }
+        let canvas = this.canvas;
         canvas.rect(x, y, x1 - x, y1 - y);
     }
 }
@@ -287,7 +312,11 @@ class Rect extends Line {
 // 绘制圆形
 class Circle extends Line {
 
-    _drawInternal(canvas, x, y, x1, y1) {
+    _drawInternal(isDown, x, y, x1, y1) {
+        if (!isDown) {
+            return;
+        }
+        let canvas = this.canvas;
         // 圆心 (cX,cY), 半径 r
         let cX = (x + x1) / 2;
         let cY = (y + y1) / 2;
@@ -301,7 +330,11 @@ class Circle extends Line {
 // 不可直接绘制，需要在子类中重写draw方法，将要绘制的点加到 points 数组中。
 class AnyDrawable extends Line {
 
-    _drawInternal(canvas, x, y, x1, y1) {
+    _drawInternal(isDown, x, y, x1, y1) {
+        if (!isDown) {
+            return;
+        }
+        let canvas = this.canvas;
         if (this.points && this.points.length > 1) {
             this.points.forEach((e, index) => {
                 if (index == 0) {
@@ -390,5 +423,87 @@ class Arrow extends AnyDrawable {
             new Point(x1 - L * cos(d) - S1 * cos(PI / 2 + d),
                 y1 - L * sin(d) - S1 * sin(PI / 2 - d)),
         ];
+    }
+}
+
+// 彩色画笔
+class RainbowDrawable extends PaintDrawable {
+
+    constructor(canvas) {
+        super(canvas);
+        this.count = 0;
+        this.isColorPlus = true;
+        this.isWidthPlus = true;
+        this.lineMin = 12;
+        this.lineMax = 28;
+        this.r = 0;
+        this.g = 0x50;
+        this.b = 0x75;
+    }
+
+    _drawInternal(isDown, x, y, x1, y1) {
+        let canvas = this.canvas;
+        let {r, g, b, lineWidth, lineMin, lineMax} = this;
+        if (r >= 255) {
+            r = 255;
+            this.isColorPlus = false;
+        } else if(r <= 0) {
+            r = 0;
+            this.isColorPlus = true;
+        }
+
+        if (!lineWidth) {
+            this.lineWidth = lineMin;
+        } else if (lineWidth >= lineMax) {
+            lineWidth = lineMax;
+            this.isWidthPlus = false;
+        } else if (lineWidth <= lineMin) {
+            lineWidth = lineMin;
+            this.isWidthPlus = true;
+        }
+        this.setColor(this.rgb(r, g, b));
+        this.setLineWidth(this.lineWidth);
+
+        // 绘制形状
+        if (isDown) {
+            canvas.moveTo(x, y);
+            canvas.lineTo(x1, y1);
+        }
+
+        if (this.isColorPlus) {
+            this.r++;
+        } else {
+            this.r--;
+        }
+
+        if (this.isWidthPlus) {
+            this.lineWidth += 0.1;
+        } else {
+            this.lineWidth -= 0.1;
+        }
+    }
+
+    wrap(n) {
+        return (n < 16 ? '0' : '') + Number(n).toString(16);
+    }
+
+    /**
+     * 获取颜色值
+     * @param {*} red [0, 255)
+     * @param {*} green [0, 255)
+     * @param {*} blue [0, 255)
+     */
+    rgb(red, green, blue) {
+        var illegal = false;
+        [red, green, blue].forEach((value) => {
+            if (value < 0 || value > 255) {
+                illegal = true;
+            }
+        });
+        if (illegal) {
+            console.error('参数错误', red, green, blue);
+            return '#454545';
+        }
+        return '#' + this.wrap(red) + this.wrap(green) + this.wrap(blue);
     }
 }
