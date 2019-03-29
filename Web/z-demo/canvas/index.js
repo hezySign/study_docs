@@ -58,6 +58,8 @@ class WhiteBoard {
                 break;
             case 'rainbow': drawable = new RainbowDrawable(ctx);
                 break;
+            case 'eraser': drawable = new Eraser(ctx);
+                break;
             default: console.error('不支持的shape', shape)
                 break;
         }
@@ -312,6 +314,25 @@ class Rect extends Line {
         }
         let canvas = this.canvas;
         canvas.rect(x, y, x1 - x, y1 - y);
+    }
+}
+
+// 橡皮擦
+class Eraser extends PaintDrawable {
+
+    constructor(canvas) {
+        super(canvas);
+        this.size = 20;
+    }
+
+    _drawInternal(isDown, x, y, x1, y1) {
+        if (!isDown) {
+            return;
+        }
+        let {size} = this;
+        if (Math.abs(x1-x) <= size && Math.abs(y1 - y) <= size) {
+            this.canvas.clearRect(x1, y1, size, size);
+        }
     }
 }
 
