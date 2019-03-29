@@ -8,12 +8,9 @@
 </head>
 
 <body>
-    <canvas id="myCanvas"
-        width="800"
-        height="600"
+    <canvas id="myCanvas" width="600" height="300"
         style="border:1px solid #d3d3d3; margin: 50px 100px;"
-        >
-        Your browser does not support the HTML5 canvas tag.
+        >Your browser does not support the HTML5 canvas tag.
     </canvas>
 
     <div id="myController">
@@ -23,9 +20,15 @@
         
         <label>画笔粗细</label>
         <select onchange="board.setConfig({ lineWidth: this.value})">
-            <option value="1">1</option>
-            <option value="5">5</option>
+            <option value="1">2</option>
+            <option value="5">6</option>
             <option value="10">10</option>
+        </select>
+
+        <label>填充方式</label>
+        <select onchange="board.setConfig({ fill: this.value})">
+            <option value="0">线条</option>
+            <option value="1">填充</option>
         </select>
 
         <label>颜色</label>
@@ -34,12 +37,13 @@
             <option value="red">red</option>
             <option value="green">green</option>
             <option value="blue">blue</option>
+            <option value="#f3a599">#f3a599</option>
         </select>
         
         <label>形状</label>
         <select onchange="board.setConfig({ shape: this.value})">
             <option value="line">直线</option>
-            <option value="any">画笔</option>
+            <option value="paint">画笔</option>
             <option value="rect">矩形</option>
             <option value="circle">圆形</option>
             <option value="arrow">箭头</option>
@@ -47,8 +51,14 @@
     </div>
 
     <script>
+        // var board = new WhiteBoard("myCanvas");
         var board = new WhiteBoard("myCanvas", {
-            shape: 'line',
+            color: 'red',
+            lineWidth: 2,
+            shape: 'paint',
+            onDrawEnd() {
+                console.log('onDrawEnd', this.step, this.canvasHistory.length);
+            }
         });
 
     </script>

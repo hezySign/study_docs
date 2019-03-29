@@ -1,79 +1,99 @@
 // 白板
 class WhiteBoard {
-    constructor(canvasId, {
-        color = '#999999', // 画笔颜色
-        lineWidth = 1, // 线条宽度
-        shape = 'line', // 绘制形状: line, rect, circle, any, arrow
-        onDrawEnd = null,
-    }) {
-        this.setConfig({color, lineWidth, shape, onDrawEnd});
+    constructor(canvasId, obj) {
+        let {
+            color = '#999999', // 画笔颜色
+            lineWidth = 1, // 线条宽度
+            shape = 'line', // 绘制形状: line, rect, circle, paint, arrow
+            fill = false, // true-填充，false-线条
+            onDrawEnd = null,
+        } = { ...obj };
+
+        if (!canvasId) {
+            throw new Error('缺少参数 canvasId');
+        }
 
         let ele = document.getElementById(canvasId);
         let ctx = ele.getContext("2d");
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
-        
+
         this.ele = ele;
         this.ctx = ctx;
         this.canvasWidth = ele.width;
         this.canvasHeight = ele.height;
+        this.setConfig({ color, lineWidth, shape, fill, onDrawEnd });
+        this.clearAll();
 
-        let drawable = null;
         ele.onmousedown = e => {
-            this.isDrawing = true;
-            let {color, shape, lineWidth} = this;
-            let x = e.pageX - ele.offsetLeft, y = e.pageY - ele.offsetTop;
-            switch (shape) {
-                case 'line': drawable = new Line(ctx).setColor(color).setLineWidth(lineWidth);
-                    break;
-                case 'rect': drawable = new Rect(ctx).setColor(color).setLineWidth(lineWidth);
-                    break;
-                case 'circle': drawable = new Circle(ctx).setColor(color).setLineWidth(lineWidth);
-                    break;
-                case 'any': drawable = new Drawable(ctx).setColor(color).setLineWidth(lineWidth);
-                    break;
-                case 'arrow': drawable = new Arrow(ctx).setColor(color).setLineWidth(lineWidth);
-                    break;
-                default: console.error('不支持的shape', shape)
-                    break;
-            }
-            if (drawable && drawable instanceof Drawable) {
-                drawable.draw(x, y, false);
-            }
+            this._onDrawStart(e);
         };
         ele.onmousemove = e => {
-            if (this.isDrawing) {
-                let {shape, step, canvasWidth, canvasHeight} = this;
-                let x = e.pageX - ele.offsetLeft, y = e.pageY - ele.offsetTop;
-                if (drawable && drawable instanceof Drawable) {
-                    if (shape && shape != 'any') {
-                        // 绘制封装好的形状
-                        let canvasPic = new Image();
-                        if (step >= 0) {
-                            canvasPic.src = this.canvasHistory[step];
-                        }
-                        canvasPic.onload = () => {
-                            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-                            ctx.drawImage(canvasPic, 0, 0);
-                            drawable.draw(x, y, true);
-                        };
-                    } else {
-                        // 画笔绘制形式
-                        drawable.draw(x, y, true);
-                    }
-                }
-            }
+            this._onDrawMove(e);
         };
         ele.onmouseup = () => {
-            this.isDrawing = false;
-            this.onPush();
+            this._onDrawEnd();
         };
-        ele.mouseleave = () => {
-            this.isDrawing = false;
-            this.onPush();
-        }
+    }
 
-        this.clearAll();
+    // 画笔开始绘制
+    _onDrawStart(e) {
+        this.isDrawing = true;
+        let drawable = null;
+        let { ele, ctx, shape, fill } = this;
+        let x = e.pageX - ele.offsetLeft, y = e.pageY - ele.offsetTop;
+        switch (shape) {
+            case 'line': drawable = new Line(ctx);
+                break;
+            case 'rect': drawable = new Rect(ctx);
+                break;
+            case 'circle': drawable = new Circle(ctx);
+                break;
+            case 'paint': drawable = new PaintDrawable(ctx);
+                break;
+            case 'arrow': drawable = new Arrow(ctx);
+                break;
+            default: console.error('不支持的shape', shape)
+                break;
+        }
+        if (drawable && drawable instanceof Drawable) {
+            drawable.setFill(fill);
+            drawable.draw(x, y, false);
+            this.drawable = drawable;
+        }
+    }
+
+    // 画笔移动
+    _onDrawMove(e) {
+        if (this.isDrawing) {
+            let { ele, ctx, drawable, shape, step, canvasWidth, canvasHeight } = this;
+            let x = e.pageX - ele.offsetLeft, y = e.pageY - ele.offsetTop;
+            if (drawable && drawable instanceof Drawable) {
+                if (drawable instanceof PaintDrawable) {
+                    // 画笔绘制形式，不清除画布
+                    drawable.draw(x, y, true);
+                } else {
+                    // 清除画布，恢复上次绘制的图形，再绘制封装好的形状
+                    let canvasPic = new Image();
+                    if (step >= 0) {
+                        canvasPic.src = this.canvasHistory[step];
+                    }
+                    canvasPic.onload = () => {
+                        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                        ctx.drawImage(canvasPic, 0, 0);
+                        drawable.draw(x, y, true);
+                    };
+                }
+            }
+        }
+    }
+
+    // 画笔结束绘制
+    _onDrawEnd() {
+        if (this.isDrawing) {
+            this._onPush();
+        }
+        this.isDrawing = false;
     }
 
     // 设置参数
@@ -81,35 +101,36 @@ class WhiteBoard {
         color,
         lineWidth,
         shape,
+        fill,
         onDrawEnd
     }) {
-        if (color) {
+        if (color != undefined) {
             this.color = color;
+            this.ctx.fillStyle = color;
+            this.ctx.strokeStyle = color;
         }
-        if (lineWidth) {
+        if (lineWidth != undefined) {
             this.lineWidth = lineWidth;
+            this.ctx.lineWidth = lineWidth;
         }
         if (shape) {
             this.shape = shape;
         }
-        if (onDrawEnd) {
-            this.onDrawEnd = onDrawEnd;
-        }
-        console.log('setConfig', color, lineWidth, shape, onDrawEnd, this)
+        this.fill = fill;
+        this.onDrawEnd = onDrawEnd;
+        console.log('setConfig', this)
     }
 
     // 记录本次绘制
-    onPush() {
+    _onPush() {
         this.step++;
         if (this.step < this.canvasHistory.length) {
             this.canvasHistory.length = this.step;
         }
         this.canvasHistory.push(this.ele.toDataURL());
-
         if (this.onDrawEnd instanceof Function) {
-            this.onDrawEnd(ctx);
+            this.onDrawEnd();
         }
-        console.log('onPush', this.step, this.canvasHistory.length);
     }
 
     // 清除所有绘制
@@ -118,7 +139,7 @@ class WhiteBoard {
         this.step = -1;
         this.canvasHistory = [];
         ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-        this.onPush();
+        this._onPush();
     }
 
     // 撤销方法
@@ -156,7 +177,16 @@ class WhiteBoard {
     }
 }
 
-// 可绘制的对象，需要至少两个点的坐标
+// 点
+class Point {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+// 定义可绘制的对象
+// 不可直接绘制，需要在子类中实现绘制方法
 class Drawable {
 
     constructor(canvas) {
@@ -164,7 +194,7 @@ class Drawable {
     }
 
     /**
-     * 绘制需要的形状
+     * 外部调用的绘制
      * @param {*} x x轴坐标
      * @param {*} y y轴坐标
      * @param {*} isDown true-触摸移动状态，false-按下的初始状态
@@ -176,7 +206,7 @@ class Drawable {
             canvas.beginPath();
             this._drawInternal(this.canvas, this.lastX, this.lastY, x, y);
             canvas.closePath();
-            if (this.fill) {
+            if (this.fill == 1) {
                 canvas.fill();
             } else {
                 canvas.stroke();
@@ -195,10 +225,8 @@ class Drawable {
         }
     }
 
-    // 内部绘制方法，绘制具体的形状
+    // 内部绘制方法，在子类中绘制具体的形状。
     _drawInternal(canvas, x, y, x1, y1) {
-        canvas.moveTo(x, y);
-        canvas.lineTo(x1, y1);
     }
 
     setColor(color) {
@@ -224,16 +252,18 @@ class Drawable {
     }
 }
 
+// 画笔
+class PaintDrawable extends Drawable {
 
-// 点
-class Point {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
+    _drawInternal(canvas, x, y, x1, y1) {
+        canvas.moveTo(x, y);
+        canvas.lineTo(x1, y1);
     }
 }
 
-// 直线
+// 直线。
+// 保留起始坐标点。
+// 起点 P(x,y) 到 终点 P1(x1,y1)。
 class Line extends Drawable {
 
     draw(x, y, isDown, keepOrigin = true) {
@@ -246,22 +276,24 @@ class Line extends Drawable {
     }
 }
 
-// 绘制圆形
-class Circle extends Line {
-
-    _drawInternal(canvas, x, y, x1, y1) {
-        let centerX = (x + x1) / 2;
-        let centerY = (y + y1) / 2;
-        let radius = Math.sqrt(Math.pow(x1 - x, 2) + Math.pow(y1 - y, 2)) / 2;
-        canvas.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
-    }
-}
-
 // 绘制矩形
 class Rect extends Line {
 
     _drawInternal(canvas, x, y, x1, y1) {
-        canvas.rect(x, y, x1 - x, y1 -y);
+        canvas.rect(x, y, x1 - x, y1 - y);
+    }
+}
+
+// 绘制圆形
+class Circle extends Line {
+
+    _drawInternal(canvas, x, y, x1, y1) {
+        // 圆心 (cX,cY), 半径 r
+        let cX = (x + x1) / 2;
+        let cY = (y + y1) / 2;
+        let L = Math.sqrt(Math.pow(x1 - x, 2) + Math.pow(y1 - y, 2));
+        let r = L / 2;
+        canvas.arc(cX, cY, r, 0, Math.PI * 2, true);
     }
 }
 
@@ -300,7 +332,7 @@ class AnyDrawable extends Line {
 class Arrow extends AnyDrawable {
     constructor(canvas) {
         super(canvas);
-        this.setConfig({aLength:10, aSize1:3, aSize2:8});
+        this.setConfig({ aLength: 10, aSize1: 3, aSize2: 8 });
     }
 
     // 设置箭头样式
@@ -324,39 +356,39 @@ class Arrow extends AnyDrawable {
         if (isDown) {
             this.setEndPoint(x, y);
         }
-        if (this.startX == undefined) {
-            this.startX = x;
-        }
-        if (this.startY == undefined) {
-            this.startY = y;
-        }
         super.draw(x, y, isDown, keepOrigin);
     }
 
     // 重置箭头绘制的样式
     setEndPoint(x1, y1) {
-        let x = this.startX, y = this.startY;
-        let L = this.aLength, S1 = this.aSize1, S2 = this.aSize2;
+        console.log('Arrow', this.lastX, this.lastY, this.startX, this.startY)
+        // 箭头参数：起点 P(x,y)，终点 P1(x1, y1)，方向 P→P1
+        let x = this.lastX, y = this.lastY;
+        let L = this.aLength; // 箭头方向上的长度
+        let S1 = this.aSize1; // 箭头沿线垂直方向内侧宽度的一半
+        let S2 = this.aSize2; // 箭头沿线垂直方向外侧宽度的一半
+        let d = Math.atan2(y1 - y, x1 - x);// 角度的弧度值
         let PI = Math.PI;
-        let degree = Math.atan2(y1 - y, x - x1);
-
-        console.log(degree / Math.PI);
+        // let sin = Math.sin, cos = Math.cos;
+        let { sin, cos } = Math;
+        // 计算实际绘制的箭头比例
         let arrowLengh = Math.sqrt(Math.pow(x1 - x, 2) + Math.pow(y1 - y, 2));
-        if (arrowLengh < 3 * L) {
-            this.points = [new Point(x, y), new Point(x1, y1)];
-        } else {
-            this.points = [
-                new Point(x, y),
-                new Point(x1 - L * Math.cos(degree) + S1 * Math.cos(PI / 2 + degree),
-                    y1 - L * Math.sin(degree) + S1 * Math.sin(PI / 2 - degree)),
-                new Point(x1 - L * Math.cos(degree) + S2 * Math.cos(PI / 2 + degree),
-                    y1 - L * Math.sin(degree) + S2 * Math.sin(PI / 2 - degree)),
-                new Point(x1, y1),
-                new Point(x1 - L * Math.cos(degree) - S2 * Math.cos(PI / 2 + degree),
-                    y1 - L * Math.sin(degree) - S2 * Math.sin(PI / 2 - degree)),
-                new Point(x1 - L * Math.cos(degree) - S1 * Math.cos(PI / 2 + degree),
-                    y1 - L * Math.sin(degree) - S1 * Math.sin(PI / 2 - degree)),
-            ];
-        }
+        let scale = Math.atan(arrowLengh / 100);
+        L *= scale;
+        S1 *= scale;
+        S2 *= scale;
+
+        this.points = [
+            new Point(x, y),
+            new Point(x1 - L * cos(d) + S1 * cos(PI / 2 + d),
+                y1 - L * sin(d) + S1 * sin(PI / 2 - d)),
+            new Point(x1 - L * cos(d) + S2 * cos(PI / 2 + d),
+                y1 - L * sin(d) + S2 * sin(PI / 2 - d)),
+            new Point(x1, y1),
+            new Point(x1 - L * cos(d) - S2 * cos(PI / 2 + d),
+                y1 - L * sin(d) - S2 * sin(PI / 2 - d)),
+            new Point(x1 - L * cos(d) - S1 * cos(PI / 2 + d),
+                y1 - L * sin(d) - S1 * sin(PI / 2 - d)),
+        ];
     }
 }
