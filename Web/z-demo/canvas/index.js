@@ -462,45 +462,26 @@ class RainbowDrawable extends PaintDrawable {
         this.isWidthPlus = true;
         this.lineMin = 12;
         this.lineMax = 28;
-        this.r = 0;
-        this.g = 0x50;
-        this.b = 0x75;
+        this.lineWidth = 12;
+        this.hue = 0;
     }
 
     _drawInternal(isDown, x, y, x1, y1) {
         let canvas = this.canvas;
-        let {r, g, b, lineWidth, lineMin, lineMax} = this;
-        if (r >= 255) {
-            r = 255;
-            this.isColorPlus = false;
-        } else if(r <= 0) {
-            r = 0;
-            this.isColorPlus = true;
-        }
-
-        if (!lineWidth) {
-            this.lineWidth = lineMin;
-        } else if (lineWidth >= lineMax) {
-            lineWidth = lineMax;
-            this.isWidthPlus = false;
-        } else if (lineWidth <= lineMin) {
-            lineWidth = lineMin;
-            this.isWidthPlus = true;
-        }
-        this.setColor(this.rgb(r, g, b));
+        let {hue, lineWidth, lineMin, lineMax} = this;
+        
+        this.setColor(`hsl(${hue}, 100%, 50%)`);
         this.setLineWidth(this.lineWidth);
         this.setFill(false);
-
         // 绘制形状
         if (isDown) {
             canvas.moveTo(x, y);
             canvas.lineTo(x1, y1);
         }
 
-        if (this.isColorPlus) {
-            this.r++;
-        } else {
-            this.r--;
+        this.hue++;
+        if (this.hue >= 360) {
+            this.hue = 0;
         }
 
         if (this.isWidthPlus) {
@@ -508,29 +489,12 @@ class RainbowDrawable extends PaintDrawable {
         } else {
             this.lineWidth -= 0.1;
         }
-    }
-
-    wrap(n) {
-        return (n < 16 ? '0' : '') + Number(n).toString(16);
-    }
-
-    /**
-     * 获取颜色值
-     * @param {*} red [0, 255)
-     * @param {*} green [0, 255)
-     * @param {*} blue [0, 255)
-     */
-    rgb(red, green, blue) {
-        var illegal = false;
-        [red, green, blue].forEach((value) => {
-            if (value < 0 || value > 255) {
-                illegal = true;
-            }
-        });
-        if (illegal) {
-            console.error('参数错误', red, green, blue);
-            return '#454545';
+        if (lineWidth >= lineMax) {
+            lineWidth = lineMax;
+            this.isWidthPlus = false;
+        } else if (lineWidth <= lineMin) {
+            lineWidth = lineMin;
+            this.isWidthPlus = true;
         }
-        return '#' + this.wrap(red) + this.wrap(green) + this.wrap(blue);
     }
 }
