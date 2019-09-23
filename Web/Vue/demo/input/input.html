@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+
+<body>
+    <div id="app">
+        <div>在 IOS 打开，搜狗输入法 enter 键交互异常</div>
+        <el-input v-model="input" @keydown.enter.native.prevent="submitChat" type="textarea"
+            :autosize="{ minRows: 2, maxRows: 4}" maxlength="200" class="commonInput" resize="none" placeholder="请输入">
+        </el-input>
+        <ol>
+            <li v-for="(item, i) in list" :key="i">{{ item }}</li>
+        </ol>
+
+        <div>处理后的正常输入框</div>
+        <el-input v-model="inputText" type="textarea" :autosize="{ minRows: 2, maxRows: 4}" maxlength="200"
+            resize="none" placeholder="请输入" @keydown.enter.native.prevent="send"></el-input>
+        <ol>
+            <li v-for="(item, i) in inputList" :key="i">{{ item }}</li>
+        </ol>
+    </div>
+</body>
+<!-- 先引入 Vue -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- 引入组件库 -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script src="http://cdn.bootcss.com/rxjs/5.2.0/Rx.min.js"></script>
+
+<script>
+    const Observable = Rx.Observable;
+
+    // 注册一个全局自定义指令 `v-demo`
+    Vue.directive('demo', {
+        bind: function (el, binding, vnode) {
+            const textarea = el.querySelector('textarea')
+
+            const keyup$ = Observable
+                .fromEvent(textarea, 'keyup')
+                .filter(t => t.keyCode === 13)
+
+            const keydown$ = Observable
+                .fromEvent(textarea, 'keydown')
+                .filter(t => t.keyCode === 13)
+
+            const source = Observable
+                .merge(keydown$, keyup$)
+                .scan((prev, cur) => {
+                    const val = cur.type === 'keyup' ? -1 : 1
+                    const sum = Math.max(0, prev.sum + val)
+
+                    return {
+                        sum,
+                        submit: prev.sum === 1 && val === -1,
+                        event: cur,
+                    };
+                }, {
+                    sum: 0,
+                    submit: false,
+                    event: null,
+                })
+                .filter(t => t.submit)
+                .map(t => t.event);
+
+            source.subscribe(e => {
+                const func = binding.value
+                func(e)
+            })
+        }
+    })
+
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                input: null,
+                inputText: null,
+                list: [],
+                inputList: [],
+            }
+        },
+        methods: {
+            submitChat(e) {
+                const val = e.target.value
+                var keyCode = window.event ? e.keyCode : e.which;
+                console.log('submitChat', keyCode, e);
+
+                this.list.push(val)
+                this.input = "";
+            },
+            send(e) {
+                const val = e.target.value;
+                var keyCode = window.event ? e.keyCode : e.which;
+                console.log('send', keyCode, e);
+
+                // 过滤输入法按enter键确认的情况
+                if (keyCode == 13) {
+                    this.inputList.push(val);
+                    this.inputText = "";
+                }
+            }
+        }
+    })
+</script>
+
+</html>
