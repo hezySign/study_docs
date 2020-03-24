@@ -8,7 +8,7 @@
   直接使用默认配置进行安装就可以了。
 - git 中的仓库分为`本地仓库`和`远程仓库`。
 
-### git 常用 GUI 工具：
+### git 常用 GUI 工具
 
 推荐 [TortoiseGit](https://tortoisegit.org/download/)
 
