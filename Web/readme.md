@@ -16,7 +16,6 @@
 ### 项目相关
 
 1. JQuery
-1. bootstrap
 1. Vue.js
 1. element-ui
 1. 网络请求
@@ -28,8 +27,9 @@
 
 1. npm 常用命令
 1. 打包和部署
-   1. webpack
-   1. gulp.js
+   1. [webpack](https://webpack.js.org/concepts/)
+   1. [gulp.js](https://www.gulpjs.com.cn/)
+   1. [gulp和webpack对比](https://www.cnblogs.com/RuMengkai/p/6667321.html)
 1. 浏览器兼容性
 1. h5相关兼容问题
 1. 性能优化
